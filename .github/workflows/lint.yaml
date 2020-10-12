@@ -1,11 +1,11 @@
-name: Tests
+name: Lint
 
 on: [push, pull_request]
 
 jobs:
-  tests:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -14,8 +14,6 @@ jobs:
           - {name: '3.8', python: '3.8', os: ubuntu-latest, architecture: 'x64'}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, architecture: 'x64'}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, architecture: 'x64'}
-          - {name: Windows, python: '3.8', os: windows-latest, architecture: 'x64'}
-          - {name: WindowsX86, python: '3.8', os: windows-latest, architecture: 'x86'}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -38,7 +36,13 @@ jobs:
           restore-keys: pip-${{ runner.os }}-${{ matrix.python }}-
       - name: install deps
         run: |
-          pip install -r requirements.txt
           pip install -r requirements-dev.txt
-      - name: pytest
-        run: pytest -v --cov
+      - name: cache pre-commit
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pre-commit
+          key: per-commit|${{ runner.os }}-${{ matrix.python }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: per-commit|${{ runner.os }}-${{ matrix.python }}-
+      - name: pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
+        if: matrix.os == 'ubuntu-latest'
