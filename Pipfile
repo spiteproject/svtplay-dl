@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+cx-freeze = "*"
+pytest = "*"
+pytest-cov = "*"
+pre-commit = "*"
+wheel = "*"
+
+[packages]
+requests = "*"
+cryptography = "*"
+python-dateutil = "*"
+PySocks = "*"
+PyYAML = "*"
