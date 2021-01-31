@@ -1,3 +1,29 @@
 [tool.black]
 line-length = 150
 target-version = ['py36']
+
+[tool.poetry]
+name = "svtplay-dl"
+version = "2.8"
+description = "Command-line program to download videos from various video on demand sites"
+authors = ["Johan Andersson <j@i19.se>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6.2"
+requests = "^2.25.1"
+PySocks = "^1.7.1"
+PyYAML = "^5.4.1"
+cryptography = "^3.3.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.2"
+wheel = "^0.36.2"
+pre-commit = "^2.10.0"
+pytest-cov = "^2.11.1"
+cx-Freeze = "^6.5.3"
+twine = "^3.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
