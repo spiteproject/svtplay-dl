@@ -9,10 +9,10 @@ pytest = "*"
 pytest-cov = "*"
 pre-commit = "*"
 wheel = "*"
+twine = "*"
 
 [packages]
 requests = "*"
 cryptography = "*"
-python-dateutil = "*"
 PySocks = "*"
 PyYAML = "*"
