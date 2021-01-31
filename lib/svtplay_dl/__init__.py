@@ -74,3 +74,9 @@ def main():
     except (yaml.YAMLError, yaml.MarkedYAMLError) as e:
         logging.error("Your settings file(s) contain invalid YAML syntax! Please fix and restart!, {}".format(str(e)))
         sys.exit(2)
+
+
+from ._version import get_versions
+
+__version__ = get_versions()["version"]
+del get_versions

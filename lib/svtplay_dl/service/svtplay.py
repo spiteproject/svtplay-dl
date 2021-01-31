@@ -47,7 +47,7 @@ class Svtplay(Service, MetadataThumbMixin):
             try:
                 janson = res.json()
             except json.decoder.JSONDecodeError:
-                yield ServiceError("Can't decode api request: {}".format(res.request.url))
+                yield ServiceError(f"Can't decode api request: {res.request.url}")
                 return
             videos = self._get_video(janson)
             self.config.set("live", True)
@@ -74,7 +74,7 @@ class Svtplay(Service, MetadataThumbMixin):
         try:
             janson = res.json()
         except json.decoder.JSONDecodeError:
-            yield ServiceError("Can't decode api request: {}".format(res.request.url))
+            yield ServiceError(f"Can't decode api request: {res.request.url}")
             return
         videos = self._get_video(janson)
         yield from videos
@@ -133,7 +133,7 @@ class Svtplay(Service, MetadataThumbMixin):
         if page > maxpage:
             return videos
 
-        res = self.http.get("http://www.svtplay.se/sista-chansen?sida={}".format(page))
+        res = self.http.get(f"http://www.svtplay.se/sista-chansen?sida={page}")
         match = re.search("__svtplay'] = ({.*});", res.text)
         if not match:
             return videos
@@ -200,7 +200,7 @@ class Svtplay(Service, MetadataThumbMixin):
                 videos.append(janson[episode["urls"]["id"]]["svtplay"])
             for i in associatedContent:
                 if tab:
-                    section = "Selection:{}".format(tab)
+                    section = f"Selection:{tab}"
                     if section == i["id"]:
                         keys.append(section)
                 else:
@@ -276,7 +276,7 @@ class Svtplay(Service, MetadataThumbMixin):
         if not other:
             other = desc
         elif desc:
-            other += "-{}".format(desc)
+            other += f"-{desc}"
 
         self.output["title"] = filenamify(name)
         self.output["id"] = id
