@@ -36,8 +36,8 @@ jobs:
           restore-keys: pip-${{ runner.os }}-${{ matrix.python }}-
       - name: install deps
         run: |
-          pip install pipenv==2020.11.15
-          pipenv sync --dev
+          pip install poetry==1.1.0
+          poetry install
       - name: cache pre-commit
         uses: actions/cache@v2
         with:
@@ -46,10 +46,10 @@ jobs:
           restore-keys: per-commit|${{ runner.os }}-${{ matrix.python }}-
         if: matrix.os == 'ubuntu-latest'
       - name: pre-commit
-        run: pipenv run pre-commit run --all-files --show-diff-on-failure
+        run: poetry run pre-commit run --all-files --show-diff-on-failure
         if: matrix.os == 'ubuntu-latest'
       - name: pytest
-        run: pipenv run pytest -v --cov
+        run: poetry run pytest -v --cov
 
   binaries-make:
     name: "binaries make"
@@ -78,16 +78,16 @@ jobs:
           restore-keys: pip-${{ runner.os }}-${{ matrix.python }}-
       - name: install deps
         run: |
-          pip install pipenv==2020.11.15
-          pipenv sync --dev
+          pip install poetry==1.1.0
+          poetry install
       - name: set version
         run: python setversion.py
 
       # Build .zip fil for *nix
-      - run: pipenv run make
-      - run: pipenv run ./svtplay-dl --version
+      - run: poetry run make
+      - run: poetry run ./svtplay-dl --version
       - name: cibuild
-        run: python scripts/cibuild.py
+        run: poetry run python scripts/cibuild.py
         env:
           CIBUILD: "yes"
           BUILD_DOCKER: "no"
@@ -128,12 +128,12 @@ jobs:
           restore-keys: pip-${{ runner.os }}-${{ matrix.python }}-
       - name: install deps
         run: |
-          pip install pipenv==2020.11.15
-          pipenv sync --dev
+          pip install poetry==1.1.0
+          poetry install
       - name: set version
         run: python setversion.py
       - name: build .exe
-        run: python setup.py build_exe
+        run: poetry run python setup.py build_exe
       - name: run the .exe file
         run: build\\exe.${{ matrix.arch-cx }}-${{ matrix.python }}\\svtplay-dl.exe --version
       - run: |
@@ -176,12 +176,12 @@ jobs:
           restore-keys: pip-${{ runner.os }}-${{ matrix.python }}-
       - name: install deps
         run: |
-          pip install pipenv==2020.11.15
-          pipenv sync --dev
+          pip install poetry==1.1.0
+          poetry install
       - name: python pkg
-        run: python setup.py sdist bdist_wheel
+        run: poetry run python setup.py sdist bdist_wheel
       - name: cibuild
-        run: python scripts/cibuild.py
+        run: poetry run python scripts/cibuild.py
         env:
           CIBUILD: "yes"
           BUILD_DOCKER: "yes"
