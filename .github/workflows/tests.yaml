@@ -84,8 +84,8 @@ jobs:
         run: python setversion.py
 
       # Build .zip fil for *nix
-      - run: make
-      - run: ./svtplay-dl --version
+      - run: pipenv run make
+      - run: pipenv run ./svtplay-dl --version
       - name: cibuild
         run: python scripts/cibuild.py
         env:
