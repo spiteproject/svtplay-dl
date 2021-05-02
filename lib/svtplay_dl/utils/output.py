@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 import re
 import sys
 import time
@@ -127,8 +128,8 @@ def filename(stream):
     return True
 
 
-def formatname(output, config, extension="mp4"):
-    name = _formatname(output, config, extension)
+def formatname(output, config):
+    name = pathlib.Path(_formatname(output, config)).expanduser().resolve()
     if not output.get("basedir", False):
         # If tvshow have not been derived by service do it by if season and episode is set
         if output.get("tvshow", None) is None:
@@ -137,22 +138,20 @@ def formatname(output, config, extension="mp4"):
             tvshow = output.get("tvshow", False)
         if config.get("subfolder") and "title" in output and tvshow:
             # Add subfolder with name title
-            name = os.path.join(output["title"], name)
+            name = pathlib.Path(output["title"]) / name.name
         elif config.get("subfolder") and not tvshow:
             # Add subfolder with name movies
-            name = os.path.join("movies", name)
-    if config.get("output") and os.path.isdir(os.path.expanduser(config.get("output"))):
-        name = os.path.join(config.get("output"), name)
-    elif config.get("path") and os.path.isdir(os.path.expanduser(config.get("path"))):
-        name = os.path.join(os.path.expanduser(config.get("path")), name)
+            name = pathlib.Path("movies") / name.name
+    if config.get("output") and pathlib.Path(config.get("output")).is_dir():
+        name = pathlib.Path(config.get("output")) / name.name
+    elif config.get("path") and pathlib.Path(config.get("path")).is_dir():
+        name = pathlib.Path(config.get("path")) / name.name
     elif config.get("output"):
-        filename, _ = os.path.splitext(config.get("output"))
-        name = "{}.{}".format(config.get("output"), extension)
+        name = pathlib.Path(config.get("output"))
     return name
 
 
-def _formatname(output, config, extension):
-    output["ext"] = extension
+def _formatname(output, config):
     name = config.get("filename")
     for key in output:
         if key == "title" and output[key]:
@@ -182,58 +181,42 @@ def _formatname(output, config, extension):
     return name
 
 
-def output(output, config, extension="mp4", mode="wb", **kwargs):
-    subtitlefiles = ["srt", "smi", "tt", "sami", "wrst"]
+def output(output, config):
+    subtitlefiles = [".srt", ".smi", ".tt", ".sami", ".wrst"]
+    extension = ".pdds"
+    name = formatname(output, config)
 
-    name = formatname(output, config, extension)
-
-    logging.info("Outfile: %s", name)
-    if os.path.isfile(name) and not config.get("force"):
-        logging.warning(f"File ({name}) already exists. Use --force to overwrite")
-        return None
-    dir = os.path.dirname(os.path.realpath(name))
-    if not os.path.isdir(dir):
+    logging.info("Outfile: %s", name.name)
+    if name.is_file() and not config.get("force"):
+        logging.warning(f"File ({name.name}) already essxists. Use --force to overwrite")
+        return True
+    # dir = os.path.dirname(os.path.realpath(name))
+    if not name.parent.is_dir():
         # Create directory, needed for creating tvshow subfolder
-        os.makedirs(dir)
-    if findexpisode(output, os.path.dirname(os.path.realpath(name)), os.path.basename(name)):
+        os.makedirs(name.parent)
+    if findexpisode(output, name):
         if extension in subtitlefiles:
             if not config.get("force_subtitle"):
                 if not (config.get("silent") or config.get("silent_semi")):
-                    logging.warning(f"File ({name}) already exists. Use --force-subtitle to overwrite")
-                    return None
+                    logging.warning(f"File ({name.name}) already exists. Use --force-subtitle to overwrite")
+                    return True
         else:
             if not config.get("force"):
                 if not (config.get("silent") or config.get("silent_semi")):
-                    logging.warning(f"File ({name}) already exists. Use --force to overwrite")
-                    return None
-    file_d = open(name, mode, **kwargs)
-    return file_d
-
-
-def findexpisode(output, directory, name):
-    otherfiles = ["srt", "smi", "tt", "sami", "wrst", "tbn", "nfo"]
-
-    orgname, orgext = os.path.splitext(name)
-
-    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
-    for i in files:
-        lsname, lsext = os.path.splitext(i)
-        if output["service"]:
-            if orgext[1:] in otherfiles:
-                if (
-                    output["id"]
-                    and name.find(output["service"]) > 0
-                    and lsname.find(output["service"]) > 0
-                    and name.find(output["id"]) > 0
-                    and lsname.find(output["id"]) > 0
-                    and orgext == lsext
-                ):
+                    logging.warning(f"File ({name.name}) already exists. Use --force to overwrite")
                     return True
-            elif lsext[1:] not in otherfiles and lsext[1:] not in ["m4a"]:
-                if output["id"] and output["service"]:
-                    if name.find(output["service"]) > 0 and lsname.find(output["id"]) > 0:
-                        if lsext == ".ts" and orgext == lsext and lsname.find(".audio"):
-                            return False
-                        return True
+    return False
+
+
+def findexpisode(output, name: pathlib.Path, video=True):
+    otherfiles = [".srt", ".smi", ".tt", ".sami", ".wrst", ".tbn", ".nfo"]
+
+    files = [f for f in name.parent.glob("*.*") if f.is_file()]
+    for i in files:
+        lsname, lsext = os.path.splitext(os.path.basename(i))
+        if video and lsext in otherfiles:
+            continue
+        if lsname == str(name.stem):
+            return True
 
     return False

@@ -12,6 +12,7 @@ def write_nfo_episode(output, config):
     if not output["title_nice"]:
         # If we don't even have the title, skip the NFO
         return
+
     root = ET.Element("episodedetails")
     ET.SubElement(root, "showtitle").text = output["title_nice"]
     if output["episodename"]:
@@ -26,8 +27,9 @@ def write_nfo_episode(output, config):
     if not config.get("thumbnail") and output["showthumbnailurl"]:
         # Set the thumbnail path to download link if not thumbnail downloaded
         ET.SubElement(root, "thumb").text = output["episodethumbnailurl"]
-
-    filename = formatname(output.copy(), config, extension="nfo")
+    loutout = output.copy()
+    loutout["ext"] = "nfo"
+    filename = formatname(loutout, config)
     logging.info("NFO episode: %s", filename)
 
     tree = ET.ElementTree(root)
@@ -54,8 +56,8 @@ def write_nfo_tvshow(output, config):
     cconfig.set("output", config.get("output"))
     cconfig.set("path", config.get("path"))
     cconfig.set("subfolder", config.get("subfolder"))
-    cconfig.set("filename", "tvshow.{ext}")
-    filename = formatname(output.copy(), cconfig, extension="nfo")
+    cconfig.set("filename", "tvshow.nfo")
+    filename = formatname(output.copy(), cconfig)
     logging.info("NFO show: %s", filename)
 
     tree = ET.ElementTree(root)

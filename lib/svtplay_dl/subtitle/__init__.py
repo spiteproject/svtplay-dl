@@ -7,7 +7,7 @@ from io import StringIO
 from requests import __build__ as requests_version
 from svtplay_dl.utils.http import get_full_url
 from svtplay_dl.utils.http import HTTP
-from svtplay_dl.utils.output import output
+from svtplay_dl.utils.output import formatname
 from svtplay_dl.utils.text import decode_html_entities
 
 
@@ -57,13 +57,6 @@ class subtitle:
         if self.subtype == "stpp":
             data = self.stpp(subdata)
 
-        if self.subfix:
-            if self.config.get("get_all_subtitles"):
-                if self.output["episodename"]:
-                    self.output["episodename"] = "{}-{}".format(self.output["episodename"], self.subfix)
-                else:
-                    self.output["episodename"] = self.subfix
-
         if self.config.get("get_raw_subtitles"):
             subdata = self.raw(subdata)
             self.save_file(subdata, self.subtype)
@@ -71,11 +64,13 @@ class subtitle:
         self.save_file(data, "srt")
 
     def save_file(self, data, subtype):
-        file_d = output(self.output, self.config, subtype, mode="w", encoding="utf-8")
-        if hasattr(file_d, "read") is False:
-            return
-        file_d.write(data)
-        file_d.close()
+        if self.subfix and self.config.get("get_all_subtitles"):
+            self.output["ext"] = f"{self.subfix}.{subtype}"
+        else:
+            self.output["ext"] = subtype
+        filename = formatname(self.output, self.config)
+        with open(filename, "w", encoding="utf-8") as file_d:
+            file_d.write(data)
 
     def raw(self, subdata):
         return subdata.text
