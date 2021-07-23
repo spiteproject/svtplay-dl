@@ -106,7 +106,7 @@ class postprocess:
 
         if self.config.get("keep_original") is True:
             logging.info("Merging done, keeping original files.")
-            os.rename(tempfile, orig_filename)
+            os.rename(tempfile, new_name)
             return
 
         logging.info("Merging done, removing old files.")
