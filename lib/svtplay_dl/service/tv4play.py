@@ -102,37 +102,14 @@ class Tv4play(Service, OpenGraphThumbMixin):
         janson2 = jansson["props"]["pageProps"]["initialApolloState"]
         show = jansson["query"]["nid"]
 
-        program = janson2[f'Program:{{"nid":"{show}"}}']
-        episodes_panel = []
-        clips_panel = []
-        for panel in program["panels"]:
-            if panel["assetType"] == "EPISODE":
-                params = json.loads(panel["loadMoreParams"])
-                if "tags" in params:
-                    for tag in params["tags"].split(","):
-                        if re.search(r"\d+", tag):
-                            episodes_panel.append(tag)
-                for key in panel.keys():
-                    if "videoList" in key:
-                        for video in panel[key]["videoAssets"]:
-                            match = re.search(r"VideoAsset:(\d+)", video["__ref"])
-                            if match:
-                                if match.group(1) not in items:
-                                    items.append(int(match.group(1)))
-            if config.get("include_clips") and panel["assetType"] == "CLIP":
-                params = json.loads(panel["loadMoreParams"])
-                if "tags" in params:
-                    for tag in params["tags"].split(","):
-                        if re.search(r"\d+", tag):
-                            clips_panel.append(tag)
-
-        if episodes_panel:
-            graph_list = self._graphql(show, episodes_panel, "EPISODE")
-            for i in graph_list:
-                if i not in items:
-                    items.append(i)
-        if clips_panel:
-            items.extend(self._graphql(show, clips_panel, "CLIP"))
+        # Quick fix, does not sort episodes chronologically
+        for key in janson2.keys():
+            if key.startswith("VideoAsset") and janson2[key]["program_nid"] == show:
+                if janson2[key]["clip"] == True:
+                    if config.get("include_clips"):
+                        items.append(str(janson2[key]["id"]))
+                else:
+                    items.append(str(janson2[key]["id"]))
 
         items = sorted(items)
         for item in items:
